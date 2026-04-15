@@ -20,8 +20,8 @@
 \citation{fusai2006}
 \citation{dixon2011,dessain2024}
 \citation{crepey2025}
-\citation{crepey2025}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\citation{crepey2025}
 \citation{bouchhima2024}
 \citation{dixon2011}
 \citation{spanderen2013}
@@ -38,10 +38,10 @@
 \@writefile{toc}{\contentsline {paragraph}{Parallel RNG.}{2}{section*.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Closest architectural precedent.}{2}{section*.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Parallel Levenberg--Marquardt.}{2}{section*.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3}Proposed Idea}{2}{section.3}\protected@file@percent }
-\newlabel{sec:proposed}{{3}{2}{Proposed Idea}{section.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Architecture}{2}{subsection.3.1}\protected@file@percent }
 \citation{cao2009}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Proposed Idea}{3}{section.3}\protected@file@percent }
+\newlabel{sec:proposed}{{3}{3}{Proposed Idea}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Architecture}{3}{subsection.3.1}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces MC-VaR pipeline. Only the revaluation loop is parallelized.\relax }}{3}{figure.caption.9}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{fig:pipeline}{{1}{3}{MC-VaR pipeline. Only the revaluation loop is parallelized.\relax }{figure.caption.9}{}}
@@ -59,10 +59,10 @@
 \@writefile{toc}{\contentsline {paragraph}{Measurements.}{4}{section*.17}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {5}Experiments and Analysis}{4}{section.5}\protected@file@percent }
 \newlabel{sec:experiments}{{5}{4}{Experiments and Analysis}{section.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}E1 --- VaR convergence vs N}{4}{subsection.5.1}\protected@file@percent }
 \citation{dixon2011}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces VaR(95\%) and VaR(99\%) converge as $O(1/\sqrt  {N})$.\relax }}{5}{figure.caption.18}\protected@file@percent }
 \newlabel{fig:convergence}{{2}{5}{VaR(95\%) and VaR(99\%) converge as $O(1/\sqrt {N})$.\relax }{figure.caption.18}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}E1 --- VaR convergence vs N}{5}{subsection.5.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.2}E2 --- Stage timing (Dixon decomposition)}{5}{subsection.5.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Stage breakdown confirms revaluation dominates ($>$99.99\%).\relax }}{5}{figure.caption.19}\protected@file@percent }
 \newlabel{fig:stages}{{3}{5}{Stage breakdown confirms revaluation dominates ($>$99.99\%).\relax }{figure.caption.19}{}}
@@ -71,8 +71,8 @@
 \newlabel{fig:strong}{{4}{5}{Strong scaling ($N = 10\,000$, fixed work).\relax }{figure.caption.20}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Strong scaling results.\relax }}{5}{table.caption.21}\protected@file@percent }
 \newlabel{tab:strong}{{1}{5}{Strong scaling results.\relax }{table.caption.21}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}E4 --- Weak scaling}{5}{subsection.5.4}\protected@file@percent }
 \citation{fusai2006}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}E4 --- Weak scaling}{6}{subsection.5.4}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Weak scaling (1\,000 scenarios per thread).\relax }}{6}{figure.caption.22}\protected@file@percent }
 \newlabel{fig:weak}{{5}{6}{Weak scaling (1\,000 scenarios per thread).\relax }{figure.caption.22}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.5}E5 --- Schedule comparison}{6}{subsection.5.5}\protected@file@percent }
@@ -83,19 +83,18 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.6}E6 --- Per-thread busy time}{6}{subsection.5.6}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Per-thread busy times ($T = 8$, dynamic/16).\relax }}{6}{figure.caption.25}\protected@file@percent }
 \newlabel{fig:busy}{{7}{6}{Per-thread busy times ($T = 8$, dynamic/16).\relax }{figure.caption.25}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}E7 --- Cache and IPC behaviour}{6}{subsection.5.7}\protected@file@percent }
-\citation{lin2016,schnabel2025}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}E7 --- Cache and IPC behaviour}{7}{subsection.5.7}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Hardware counters from \texttt  {perf stat} ($N = 1\,000$).\relax }}{7}{figure.caption.26}\protected@file@percent }
 \newlabel{fig:cache}{{8}{7}{Hardware counters from \texttt {perf stat} ($N = 1\,000$).\relax }{figure.caption.26}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Track B Experiments --- Parallel LM Calibration}{7}{section.6}\protected@file@percent }
 \newlabel{sec:trackB_experiments}{{6}{7}{Track B Experiments --- Parallel LM Calibration}{section.6}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.1}E8 --- Sequential calibration cost breakdown}{7}{subsection.6.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Sequential LM calibration cost breakdown (Track B E8).\relax }}{7}{table.caption.27}\protected@file@percent }
-\newlabel{tab:e8}{{3}{7}{Sequential LM calibration cost breakdown (Track B E8).\relax }{table.caption.27}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Sequential LM calibration cost breakdown (Track B E8). Run\nobreakspace  {}3 of a 5-run sweep (\texttt  {bench/trackB\_runs.csv}), selected as the cleanest complete sweep on the shared benchmark host.\relax }}{7}{table.caption.27}\protected@file@percent }
+\newlabel{tab:e8}{{3}{7}{Sequential LM calibration cost breakdown (Track B E8). Run~3 of a 5-run sweep (\texttt {bench/trackB\_runs.csv}), selected as the cleanest complete sweep on the shared benchmark host.\relax }{table.caption.27}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Jacobian share of sequential LM wall time. The red segment is the work redirected through \texttt  {fdjac2\_parallel}.\relax }}{7}{figure.caption.28}\protected@file@percent }
 \newlabel{fig:jacfraction}{{9}{7}{Jacobian share of sequential LM wall time. The red segment is the work redirected through \texttt {fdjac2\_parallel}.\relax }{figure.caption.28}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}E9 --- Wall-clock speedup at $T = 8$}{7}{subsection.6.2}\protected@file@percent }
-\citation{cao2009}
+\citation{lin2016,schnabel2025}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}E9 --- Wall-clock speedup at $T = 8$}{8}{subsection.6.2}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Track B: full LM calibration speedup at $T = 8$ (\texttt  {steps=300}, \texttt  {g2pts=128}).\relax }}{8}{figure.caption.29}\protected@file@percent }
 \newlabel{fig:e9}{{10}{8}{Track B: full LM calibration speedup at $T = 8$ (\texttt {steps=300}, \texttt {g2pts=128}).\relax }{figure.caption.29}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.3}E10 --- Correctness}{8}{subsection.6.3}\protected@file@percent }
@@ -103,19 +102,19 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.4}E11 --- Strong scaling of the Jacobian phase}{8}{subsection.6.4}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces \texttt  {fdjac2\_parallel} strong scaling, $T \in \{1,2,4,8\}$. Dashed line is the ideal $y = x$.\relax }}{8}{figure.caption.30}\protected@file@percent }
 \newlabel{fig:e11}{{11}{8}{\texttt {fdjac2\_parallel} strong scaling, $T \in \{1,2,4,8\}$. Dashed line is the ideal $y = x$.\relax }{figure.caption.30}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}E12 --- Hardware counters (\texttt  {perf stat})}{8}{subsection.6.5}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces \texttt  {perf stat} counters, sequential vs parallel (Track B E12).\relax }}{8}{table.caption.31}\protected@file@percent }
-\newlabel{tab:e12}{{4}{8}{\texttt {perf stat} counters, sequential vs parallel (Track B E12).\relax }{table.caption.31}{}}
+\citation{cao2009}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}E12 --- Hardware counters (\texttt  {perf stat})}{9}{subsection.6.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces \texttt  {perf stat} counters, sequential vs parallel (Track B E12).\relax }}{9}{table.caption.31}\protected@file@percent }
+\newlabel{tab:e12}{{4}{9}{\texttt {perf stat} counters, sequential vs parallel (Track B E12).\relax }{table.caption.31}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Correctness}{9}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusions}{9}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Track A --- application-level scenario parallelism.}{9}{section*.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Track B --- library-level Jacobian parallelism.}{9}{section*.33}\protected@file@percent }
 \citation{salmon2011}
 \citation{dixon2011,fusai2006}
 \bibstyle{plain}
 \bibdata{refs}
 \bibcite{bcbs2019}{1}
-\@writefile{toc}{\contentsline {section}{\numberline {7}Correctness}{9}{section.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {8}Conclusions}{9}{section.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Track A --- application-level scenario parallelism.}{9}{section*.32}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Track B --- library-level Jacobian parallelism.}{9}{section*.33}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Future work.}{9}{section*.34}\protected@file@percent }
 \bibcite{bouchhima2024}{2}
 \bibcite{cao2009}{3}
 \bibcite{crepey2025}{4}
@@ -126,4 +125,5 @@
 \bibcite{salmon2011}{9}
 \bibcite{schnabel2025}{10}
 \bibcite{spanderen2013}{11}
+\@writefile{toc}{\contentsline {paragraph}{Future work.}{10}{section*.34}\protected@file@percent }
 \gdef \@abspage@last{10}

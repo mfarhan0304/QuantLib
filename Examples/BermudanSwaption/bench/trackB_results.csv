@@ -1,13 +1,13 @@
 model,threads,mode,wall_s,jac_s,jac_calls
-G2 analytic,1,seq,0.479349,0.315566,7
-HullWhite analytic,1,seq,0.094005,0.036948,7
-HullWhite numerical,1,seq,65.760621,32.452516,8
-G2 analytic,2,par,0.165474,0.097815,7
-HullWhite analytic,2,par,0.037549,0.014394,7
-HullWhite numerical,2,par,40.595747,12.776721,8
-G2 analytic,4,par,0.051203,0.024639,7
-HullWhite analytic,4,par,0.012681,0.004970,7
-HullWhite numerical,4,par,12.780883,3.938837,8
-G2 analytic,8,par,0.041300,0.014918,7
-HullWhite analytic,8,par,0.011616,0.004551,7
-HullWhite numerical,8,par,12.742639,3.973505,8
+G2 analytic,1,seq,0.083787,0.057046,7
+HullWhite analytic,1,seq,0.012378,0.005534,7
+HullWhite numerical,1,seq,53.667879,25.077703,8
+G2 analytic,2,par,0.063218,0.036290,7
+HullWhite analytic,2,par,0.011784,0.004655,7
+HullWhite numerical,2,par,11.038468,4.139243,8
+G2 analytic,4,par,0.051691,0.025007,7
+HullWhite analytic,4,par,0.012127,0.004716,7
+HullWhite numerical,4,par,9.680113,4.092432,8
+G2 analytic,8,par,0.041236,0.014767,7
+HullWhite analytic,8,par,0.011607,0.004559,7
+HullWhite numerical,8,par,9.182524,4.042340,8

@@ -256,10 +256,19 @@ int main(int argc, char* argv[]) {
 #ifdef _OPENMP
         if (nThreads <= 0)
             nThreads = omp_get_max_threads();
-        // Suppress nested parallelism so inner pragmas (e.g. TreeLattice::stepback)
-        // don't oversubscribe cores. Only our fdjac2_parallel outer region uses
-        // num_threads(nt) to get real parallelism.
+        // Prevent nested-parallel oversubscription: the TreeLattice::stepback
+        // pragma inside TreeSwaptionEngine fires at every LM cost-function
+        // evaluation. Without this, each of the nt Jacobian threads would
+        // spawn its own inner team of nt threads (= nt^2 oversubscription).
         omp_set_max_active_levels(1);
+        // Force dynamic=false so the num_threads(nt) clause inside
+        // fdjac2_parallel is honored exactly.
+        omp_set_dynamic(0);
+        // Drive the runtime default to match -t N so the TreeLattice::stepback
+        // pragma fires as a top-level parallel region (level 1) in the
+        // non-Jacobian phase of lmdif — compounds with the explicit Jacobian
+        // parallelism.
+        omp_set_num_threads(nThreads);
 #else
         nThreads = 1;
         useSequential = true;

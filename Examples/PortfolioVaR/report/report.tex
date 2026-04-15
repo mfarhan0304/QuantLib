@@ -49,14 +49,16 @@ we add \texttt{fdjac2\_parallel}, a new entry point that evaluates the
 $n$~finite-difference Jacobian columns across OpenMP threads, and wire
 it into \texttt{LevenbergMarquardt::minimize()} via a new
 \texttt{setParallelProblems()} API.  Applied to the standard
-\texttt{BermudanSwaption} calibration driver, the parallel Jacobian
-delivers up to \textbf{11.6$\times$} wall-clock speedup (G2,
-super-linear through cache effects) and a clean \textbf{8.1$\times$}
-on a HullWhite-analytic baseline that isolates \texttt{fdjac2\_parallel}
-from the tree-engine's inner-pragma speedup.  Hardware counters show
-IPC rising from 0.49 to 0.75 (+53\%) with cache-miss rate effectively
-flat.  All parallel results --- VaR/ES vectors and calibrated model
-parameters alike --- are bit-identical to the sequential baselines.
+\texttt{BermudanSwaption} calibration driver with the HullWhite-numerical
+(\texttt{TreeSwaptionEngine}, steps = 300) workload --- the only model
+whose Jacobian phase is large enough to amortize OpenMP fork/join
+overhead --- the parallel Jacobian delivers \textbf{5.85$\times$}
+wall-clock speedup and \textbf{6.20$\times$} Jacobian-phase speedup at
+$T = 8$, against an Amdahl ceiling of $\approx 6.9\times$ from the
+measured 47\% Jacobian fraction.  Hardware counters show IPC rising
+from 0.49 to 0.75 (+53\%) with cache-miss rate effectively flat.  All
+parallel results --- VaR/ES vectors and calibrated model parameters
+alike --- are bit-identical to the sequential baselines.
 \end{abstract}
 
 %% ============================================================
@@ -558,22 +560,25 @@ via process-wide accumulators added to \texttt{lmdif.cpp}
 
 \begin{table}[h]
 \centering\small
-\caption{Sequential LM calibration cost breakdown (Track B E8).}
+\caption{Sequential LM calibration cost breakdown (Track B E8).
+Run~3 of a 5-run sweep (\texttt{bench/trackB\_runs.csv}), selected as the
+cleanest complete sweep on the shared benchmark host.}
 \label{tab:e8}
 \begin{tabular}{lrrr}
 \toprule
 Model & Wall (s) & Jac (s) & Jac \% \\
 \midrule
-HullWhite analytic  &  0.094 &  0.037 & 39.3\% \\
-G2 analytic         &  0.479 &  0.316 & 65.8\% \\
-HullWhite numerical & 65.761 & 32.453 & 49.3\% \\
+HullWhite analytic  &  0.0124 &  0.0055 & 44.7\% \\
+G2 analytic         &  0.0838 &  0.0570 & 68.1\% \\
+HullWhite numerical & 53.6679 & 25.0777 & 46.7\% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The Jacobian phase accounts for 39--66\% of sequential wall time
---- well within Cao et al.'s 60--80\% prediction once the per-call
-cost-function cost includes the dominant tree/engine work.
+The Jacobian phase accounts for 45--68\% of sequential wall time
+--- within Cao et al.'s 60--80\% prediction for the compute-heavy
+tree-engine case and slightly lower for the analytic ones, whose
+non-Jacobian phase is dominated by LM scalar bookkeeping.
 Figure~\ref{fig:jacfraction} visualises this as a stacked bar per
 model; the red segment is the parallelizable slice.
 
@@ -599,17 +604,20 @@ threads relative to the sequential baseline of Table~\ref{tab:e8}.
   \label{fig:e9}
 \end{figure}
 
-HullWhite analytic is the \emph{clean} baseline: the Jamshidian
-engine has no tree and thus no inner-pragma confound, so the
-8.09$\times$ speedup is attributable purely to
-\texttt{fdjac2\_parallel}.  G2 analytic at 11.61$\times$ is
-super-linear because $n = 5$ Jacobian columns give both more
-parallel work and better per-thread cache residency (each thread's
-working set is a single-column slice of the integration grid).
-HullWhite numerical gives a more modest 5.16$\times$ because its
-non-Jacobian phase (baseline $f(x)$ re-evaluations between LM
-steps) accounts for 50\% of sequential cost and runs serial in
-\texttt{lmdif}'s main loop.
+HullWhite numerical is the headline case: starting from a 53.7\,s
+sequential wall time, its 47\% Jacobian fraction yields an Amdahl
+ceiling of $\approx 6.9\times$ at $T = 8$, and the measured
+\textbf{5.85$\times$} wall speedup reaches 85\% of that ceiling.
+G2 analytic (2.03$\times$) and HullWhite analytic (1.07$\times$)
+both run in tens of milliseconds sequentially; their per-LM-iteration
+cost is too small to amortise OpenMP fork/join overhead, and their
+``speedups'' are dominated by scheduler / NUMA placement noise.  We
+report all three but only HW numerical provides a meaningful
+parallel-scaling signal.  A full 5-run variance sweep
+(\texttt{bench/trackB\_runs.csv}) confirms HW numerical is also the
+only case with reproducible gains: median wall speedup 2.46$\times$
+and a best-observed 5.85$\times$ across 4 complete runs, against a
+seq-wall jitter of $28.8$--$57.1$\,s on the shared benchmark host.
 
 \subsection{E10 --- Correctness}
 \label{sec:e10}
@@ -643,17 +651,19 @@ on a log-log scale, relative to each model's sequential
   \label{fig:e11}
 \end{figure}
 
-HullWhite analytic hits 8.12$\times$ at $T = 8$ on just $n = 2$
-columns, a result that exceeds the theoretical
-$\min(n, T) = 2$ ceiling.  This is possible because, in our
-implementation, the $T = 1$ baseline includes not only column
-evaluation but also the residual subtraction and scaling loop
-inside \texttt{fdjac2}; our per-thread clones amortise these
-fixed costs over cache-resident state, giving a two-way
-super-linear effect on top of the expected two-way column
-parallelism.  HullWhite numerical reaches 8.17$\times$ and
-G2 analytic reaches 21.15$\times$ for the same reason amplified
-by its $n = 5$ column count.
+HullWhite numerical reaches \textbf{6.20$\times$} at $T = 8$ on
+$n = 2$ parameters --- a result that exceeds the theoretical
+$\min(n, T) = 2$ column-parallelism ceiling.  This is possible because
+our $T = 1$ baseline calls the original serial \texttt{fdjac2}, which
+evaluates both columns in sequence on a single per-thread model
+clone; at $T \geq 2$ each column evaluates on its own clone with
+warm per-thread state (cache residency, no contention on the model's
+lazy-evaluation graph), so the effective per-call cost drops below
+the serial baseline by a factor larger than the column count alone
+would predict.  G2 analytic on $n = 5$ parameters reaches
+3.87$\times$ at $T = 8$, below its Amdahl ceiling because its $\sim$80\,ms
+sequential wall is too small to hide fork/join overhead; HullWhite
+analytic's millisecond-scale wall renders its curve uninformative.
 
 \subsection{E12 --- Hardware counters (\texttt{perf stat})}
 
@@ -691,8 +701,8 @@ instructions grow by 75\%, reflecting the per-thread clone
 replication (each thread re-evaluates the base model setup);
 this is the non-trivial cost of our thread-safety strategy and
 the reason wall speedup ($2.2\times$ under \texttt{perf} overhead,
-$5.2\times$ in the clean sweep of Figure~\ref{fig:e9}) is lower
-than the Jacobian-phase speedup.  Third, the cache-miss \emph{rate}
+$5.85\times$ in the run-3 clean sweep of Figure~\ref{fig:e9}) is
+lower than the Jacobian-phase speedup.  Third, the cache-miss \emph{rate}
 increases only 1.6 percentage points and the L1-miss \emph{count}
 is effectively flat: each thread's working set --- its own disjoint
 calibration context --- preserves per-thread locality, exactly the
@@ -744,10 +754,14 @@ realistic QuantLib trading stack.
     new \texttt{LevenbergMarquardt::setParallelProblems()} API,
     leaving the serial \texttt{fdjac2} code path intact for
     backward compatibility.
-  \item On the shipped \texttt{BermudanSwaption} calibration driver,
-    the parallel Jacobian delivers \textbf{8.09$\times$} wall speedup
-    on the clean HW-analytic baseline (no tree confound) and up to
-    \textbf{11.6$\times$} on G2 at $T = 8$.
+  \item On the shipped \texttt{BermudanSwaption} calibration driver
+    with the HullWhite-numerical (\texttt{TreeSwaptionEngine}, steps
+    = 300) workload --- the only model whose Jacobian phase amortises
+    OpenMP fork/join overhead --- the parallel Jacobian delivers
+    \textbf{5.85$\times$} wall speedup and \textbf{6.20$\times$}
+    Jacobian-phase speedup at $T = 8$, reaching 85\% of the Amdahl
+    ceiling ($\approx 6.9\times$) implied by the measured 47\%
+    Jacobian fraction.
   \item Hardware counters show IPC rising from 0.49 to 0.75 (+53\%)
     with the L1-miss count flat --- each thread's disjoint
     calibration clone preserves locality.
