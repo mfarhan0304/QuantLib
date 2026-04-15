@@ -1,0 +1,94 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{bcbs2019}
+\citation{fusai2006}
+\citation{dixon2011,dessain2024}
+\citation{crepey2025}
+\citation{crepey2025}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Literature Survey}{1}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Monte Carlo VaR complexity.}{1}{section*.2}\protected@file@percent }
+\citation{bouchhima2024}
+\citation{dixon2011}
+\citation{spanderen2013}
+\citation{salmon2011}
+\citation{fusai2006}
+\@writefile{toc}{\contentsline {paragraph}{American option parallelism.}{2}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{GPU MC-VaR.}{2}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{QuantLib thread safety.}{2}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Parallel RNG.}{2}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Closest architectural precedent.}{2}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Proposed Idea}{2}{section.3}\protected@file@percent }
+\newlabel{sec:proposed}{{3}{2}{Proposed Idea}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Architecture}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces MC-VaR pipeline. Only the revaluation loop is parallelized.\relax }}{2}{figure.caption.8}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:pipeline}{{1}{2}{MC-VaR pipeline. Only the revaluation loop is parallelized.\relax }{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Thread-safety hazards and mitigations}{3}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experimental Setup}{3}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Hardware.}{3}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Software.}{3}{section*.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Portfolio.}{3}{section*.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Scenario model.}{3}{section*.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Measurements.}{3}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Experiments and Analysis}{3}{section.5}\protected@file@percent }
+\newlabel{sec:experiments}{{5}{3}{Experiments and Analysis}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}E1 --- VaR convergence vs N}{3}{subsection.5.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces VaR(95\%) and VaR(99\%) converge as $O(1/\sqrt  {N})$.\relax }}{3}{figure.caption.14}\protected@file@percent }
+\newlabel{fig:convergence}{{2}{3}{VaR(95\%) and VaR(99\%) converge as $O(1/\sqrt {N})$.\relax }{figure.caption.14}{}}
+\citation{dixon2011}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}E2 --- Stage timing (Dixon decomposition)}{4}{subsection.5.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Stage breakdown confirms revaluation dominates ($>$99.99\%).\relax }}{4}{figure.caption.15}\protected@file@percent }
+\newlabel{fig:stages}{{3}{4}{Stage breakdown confirms revaluation dominates ($>$99.99\%).\relax }{figure.caption.15}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}E3 --- Strong scaling}{4}{subsection.5.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Strong scaling ($N = 10\,000$, fixed work).\relax }}{4}{figure.caption.16}\protected@file@percent }
+\newlabel{fig:strong}{{4}{4}{Strong scaling ($N = 10\,000$, fixed work).\relax }{figure.caption.16}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Strong scaling results.\relax }}{4}{table.caption.17}\protected@file@percent }
+\newlabel{tab:strong}{{1}{4}{Strong scaling results.\relax }{table.caption.17}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}E4 --- Weak scaling}{4}{subsection.5.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Weak scaling (1\,000 scenarios per thread).\relax }}{4}{figure.caption.18}\protected@file@percent }
+\newlabel{fig:weak}{{5}{4}{Weak scaling (1\,000 scenarios per thread).\relax }{figure.caption.18}{}}
+\citation{fusai2006}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}E5 --- Schedule comparison}{5}{subsection.5.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Schedule comparison ($T = 8$, $N = 10\,000$).\relax }}{5}{figure.caption.19}\protected@file@percent }
+\newlabel{fig:schedule}{{6}{5}{Schedule comparison ($T = 8$, $N = 10\,000$).\relax }{figure.caption.19}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Schedule comparison ($T = 8$, $N = 10\,000$).\relax }}{5}{table.caption.20}\protected@file@percent }
+\newlabel{tab:schedule}{{2}{5}{Schedule comparison ($T = 8$, $N = 10\,000$).\relax }{table.caption.20}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}E6 --- Per-thread busy time}{5}{subsection.5.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Per-thread busy times ($T = 8$, dynamic/16).\relax }}{5}{figure.caption.21}\protected@file@percent }
+\newlabel{fig:busy}{{7}{5}{Per-thread busy times ($T = 8$, dynamic/16).\relax }{figure.caption.21}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}E7 --- Cache and IPC behaviour}{5}{subsection.5.7}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Hardware counters from \texttt  {perf stat} ($N = 1\,000$).\relax }}{5}{figure.caption.22}\protected@file@percent }
+\newlabel{fig:cache}{{8}{5}{Hardware counters from \texttt {perf stat} ($N = 1\,000$).\relax }{figure.caption.22}{}}
+\citation{salmon2011}
+\citation{dixon2011,fusai2006}
+\bibstyle{plain}
+\bibdata{refs}
+\bibcite{bcbs2019}{1}
+\bibcite{bouchhima2024}{2}
+\bibcite{crepey2025}{3}
+\bibcite{dessain2024}{4}
+\bibcite{dixon2011}{5}
+\bibcite{fusai2006}{6}
+\bibcite{salmon2011}{7}
+\bibcite{spanderen2013}{8}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Correctness}{6}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {7}Conclusions}{6}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Future work.}{6}{section*.23}\protected@file@percent }
+\gdef \@abspage@last{7}

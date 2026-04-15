@@ -1,0 +1,7 @@
+schedule,chunk,wall_s,efficiency_pct,var99
+static,N/A,18.1386,87.7,1008956
+dynamic,1,14.8075,99.9,1008956
+dynamic,4,14.3137,99.4,1008956
+dynamic,16,15.9441,99.5,1008956
+dynamic,64,17.3549,96.9,1008956
+guided,16,17.0208,99.5,1008956

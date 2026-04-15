@@ -1,0 +1,49 @@
+\begin{thebibliography}{1}
+
+\bibitem{bcbs2019}
+{Basel Committee on Banking Supervision}.
+\newblock Minimum capital requirements for market risk.
+\newblock Technical report, Bank for International Settlements, 2019.
+
+\bibitem{bouchhima2024}
+Atef Bouchhima, Amira Jbeli, and Ridha Hamila.
+\newblock Efficient parallel {Monte-Carlo} techniques for pricing {American}
+  options including counterparty credit risk.
+\newblock {\em International Journal of Computer Mathematics}, 101(8), 2024.
+
+\bibitem{crepey2025}
+St{\'e}phane Cr{\'e}pey, Noufel Frikha, and Azar Louzi.
+\newblock A multilevel stochastic approximation algorithm for value-at-risk and
+  expected shortfall estimation.
+\newblock {\em Finance and Stochastics}, 2025.
+\newblock HAL hal-04037328.
+
+\bibitem{dessain2024}
+Jeremy Dessain et~al.
+\newblock {GPU}-accelerated {American} option pricing: The case of the
+  {Longstaff--Schwartz} {Monte Carlo} model.
+\newblock {\em Journal of Derivatives}, 32(2), 2024.
+
+\bibitem{dixon2011}
+Matthew Dixon, Thomas Bradley, Jike Chong, and Kurt Keutzer.
+\newblock {Monte Carlo}-based financial market value-at-risk estimation on
+  {GPUs}.
+\newblock In {\em {GPU} Computing Gems, Jade Edition}. Elsevier, 2011.
+
+\bibitem{fusai2006}
+Gianluca Fusai, Marina Marena, and Andrea Roncoroni.
+\newblock Grid based full portfolio revaluation for {VaR} computation.
+\newblock In {\em Working Paper}, 2006.
+
+\bibitem{salmon2011}
+John~K. Salmon, Mark~A. Moraes, Ron~O. Dror, and David~E. Shaw.
+\newblock Parallel random numbers: As easy as 1, 2, 3.
+\newblock In {\em Proceedings of SC'11}, 2011.
+\newblock Best Paper Award.
+
+\bibitem{spanderen2013}
+Klaus Spanderen.
+\newblock Beyond simple {Monte-Carlo}: Parallel computing with {QuantLib}.
+\newblock QuantLib User Meeting, D{\"u}sseldorf, 2013.
+
+\end{thebibliography}
