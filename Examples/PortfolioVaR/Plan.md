@@ -313,16 +313,19 @@ All experiments output CSV. Plotting via Python / matplotlib in a separate `benc
 
 ## 13. Deliverables
 
+**Submission format:** one zip file containing the report, all source code, and a `readme.txt` quick user manual (how to compile/execute).
+
+Contents of the zip:
+- [ ] `report.pdf` — sections: Abstract, Introduction, Literature Survey, Proposed Idea, Experimental Setup, Experiments & Analysis, Conclusions, References
+- [ ] `readme.txt` — build + run instructions (CMake invocation, how to launch `PortfolioVaR` and `PortfolioVaROMP`, how to reproduce experiments)
 - [ ] `ql/experimental/risk/scenarioevaluator.hpp` + `.cpp` — parallel engine inside the library
 - [ ] `ql/CMakeLists.txt` updated: OpenMP gate on `ql_library`, new files registered
-- [ ] Source code in `Examples/PortfolioVaR/`
-- [ ] Sequential binary `PortfolioVaR` (direct loop, no `ScenarioEvaluator`)
-- [ ] Parallel binary `PortfolioVaROMP` (uses `ScenarioEvaluator` via the library)
-- [ ] Bench harness scripts (shell + python)
+- [ ] Source code in `Examples/PortfolioVaR/` (drivers, portfolio, scenarios, var_stats)
+- [ ] Sequential binary source `PortfolioVaR.cpp` (direct loop, no `ScenarioEvaluator`)
+- [ ] Parallel binary source `PortfolioVaROMP.cpp` (uses `ScenarioEvaluator` via the library)
+- [ ] Bench harness scripts (shell + python plotting)
 - [ ] CSVs of all benchmark runs
 - [ ] Plots: convergence, strong scaling, weak scaling, schedule comparison, per-thread busy time
-- [ ] Report PDF: literature survey + methodology + results + discussion
-- [ ] LinkedIn post draft
 
 ## 14. Milestone checklist
 
@@ -405,39 +408,65 @@ All experiments output CSV. Plotting via Python / matplotlib in a separate `benc
 - [ ] **(Stretch)** Philox-4×32 counter-based RNG in the scenario generator
 - [ ] **(Stretch)** Cholesky-correlated factor scenarios (V2 model)
 
-### Phase 3 — Experiments + report
-- [ ] Re-run all experiments with final code, fresh CSVs
-- [ ] `bench/plot.py` produces all figures
-- [ ] Write literature survey section (refs in §15)
-- [ ] Write methodology section (this plan, condensed)
-- [ ] Write results section (figures + tables)
-- [ ] Write discussion: what worked, what didn't, what was surprising
-- [ ] Write conclusion + future work
-- [ ] Compile to PDF
-- [ ] Draft LinkedIn post (1 paragraph + headline figure)
+### Phase 3 — Experiments, report, and submission package
 
-## 15. References to pursue
+#### 3a. Final experiment run
+- [ ] Re-run all experiments (E1–E7, + any stretch) with final code, fresh CSVs
+- [ ] `bench/plot.py` produces all figures (convergence, strong/weak scaling, schedule comparison, per-thread busy histogram, cache table)
 
-### Assignment-supplied
-- "Parallelizing Monte Carlo applications" (assignment PDF link 1 — Springer)
-- "Parallel Monte Carlo techniques" (assignment PDF link 2)
-- 2014 CSE633 student examples (assignment PDF link 3)
+#### 3b. Report writing (required sections, in order)
+- [ ] **Abstract** — 1 paragraph: problem, approach, headline result (speedup / efficiency at T=8 and T=64)
+- [ ] **Introduction** — what Monte Carlo VaR is, why it's compute-bound, why parallelization matters (regulatory + trading context)
+- [ ] **Literature Survey** — 7 core citations (see §15): 3 recent (Crépey et al. 2025; Bouchhima et al. 2024; Dessain et al. 2024) + 4 foundational (Fusai et al. 2006; Dixon et al. 2011; Spanderen 2013; Salmon et al. 2011). Frame as: recent work has moved to GPU, distributed cloud, and MLSA complexity — leaving a gap in up-to-date empirical CPU multicore scaling studies on realistic QuantLib portfolios, which this project fills.
+- [ ] **Proposed Idea** — architecture: `ScenarioEvaluator` library class, per-thread market clones, scenario-parallel axis, schedule choice rationale; thread-safety hazards and mitigations (§10.2, §16)
+- [ ] **Experimental Setup** — hardware (8-core VM, CPU model, memory), toolchain (gcc, OpenMP, QuantLib version, CMake flags), build types (Release `-O3 -march=native`), portfolio composition, scenario count, RNG seeding
+- [ ] **Experiments & Analysis** — one subsection per experiment (E1–E7 + any stretch). Each: what was measured, figure/table, interpretation. Lead with strong scaling + schedule comparison (the main story).
+- [ ] **Conclusions** — what worked (7.1× at T=8, bit-identical correctness, dynamic beats static by 21%), what didn't (memory-bound ceiling at T=64), surprises (FD solver cost variation visible in static-schedule imbalance), future work (collapse(2), nested parallelism, Philox, Cholesky)
+- [ ] **References** — BibTeX or numbered list, complete URLs/DOIs
 
-### Domain — Monte Carlo VaR / market risk
-- Glasserman, *Monte Carlo Methods in Financial Engineering*, Springer, 2004 — the standard reference
-- Jorion, *Value at Risk*, McGraw-Hill — VaR methodology
-- BCBS, *Minimum capital requirements for market risk* (FRTB), 2019 — regulatory context
-- Longstaff & Schwartz (2001), *Valuing American Options by Simulation: A Simple Least-Squares Approach* — LSM original
+#### 3c. readme.txt
+- [ ] Prerequisites (Boost, CMake ≥3.15, gcc with OpenMP, Python for plots)
+- [ ] Build commands (`cmake -B build-release -DCMAKE_BUILD_TYPE=Release && cmake --build build-release -j`)
+- [ ] Run commands for `PortfolioVaR` (sequential) and `PortfolioVaROMP` (parallel), with flags (`OMP_NUM_THREADS`, scenario count, schedule)
+- [ ] How to regenerate the benchmark CSVs (`bench/run_all.sh`)
+- [ ] How to regenerate plots (`python bench/plot.py`)
+- [ ] Directory map: where report, source, CSVs, plots live inside the zip
 
-### Parallelization of finance codes
-- Intel MKL Vector Statistics — *Monte Carlo simulating European options pricing* cookbook
-- Several papers on parallelizing QuantLib pricing engines with OpenMP (search ACM/IEEE)
-- PARSEC `swaptions` benchmark whitepaper — for technique comparison
-- FinanceBench paper (Cavazos lab) — for kernel-level comparison points
+#### 3d. Submission package
+- [ ] Compile report to `report.pdf`
+- [ ] Assemble zip: `report.pdf`, `readme.txt`, source tree, `bench/`, CSVs, plots
+- [ ] Verify zip on a clean checkout: unzip → follow readme → binaries build and run
 
-### RNG for parallel MC
-- Salmon et al. (2011), *Parallel Random Numbers: As Easy as 1, 2, 3* — Philox/Threefry (Random123)
-- Matsumoto & Nishimura (1998), MT19937 original
+## 15. References (7 core citations)
+
+Shortlist chosen to cover: the closest methodological precedent, the current state of the art on MC VaR/ES complexity, parallel pricing of the dominant instrument class (American options), QuantLib-specific thread-safety guidance, parallel RNG, and the regulatory/industry motivation. Three are from 2024–2025; the remaining four are the foundational works no VaR parallelization report can omit.
+
+### Recent (2024–2025)
+
+1. **Crépey, S., Frikha, N. & Louzi, A. (2025).** *A Multilevel Stochastic Approximation Algorithm for Value-at-Risk and Expected Shortfall Estimation.* **Finance and Stochastics.** HAL hal-04037328.
+   - Supports: current state of the art on computational complexity of joint VaR/ES. Multilevel stochastic approximation achieves O(ε⁻²|ln ε|²) for ES versus O(ε⁻³) for standard nested MC. Cite in the Introduction to frame the baseline complexity our OpenMP speedup is layered on top of.
+
+2. **Bouchhima, A., Jbeli, A. & Hamila, R. (2024).** *Efficient parallel Monte-Carlo techniques for pricing American options including counterparty credit risk.* **International Journal of Computer Mathematics, 101(8).** Taylor & Francis, DOI 10.1080/00207160.2023.2172322.
+   - Supports: parallel MC for the exact instrument class that dominates our portfolio cost (American options). Uses Stochastic Grid Bundling Method, regression structure enables parallelization. Cite when justifying that American-option revaluation is the natural hot path to parallelize.
+
+3. **Dessain, J. et al. (2024).** *GPU-Accelerated American Option Pricing: The Case of the Longstaff–Schwartz Monte Carlo Model.* **Journal of Derivatives, 32(2).**
+   - Supports: 2024 GPU counterpart to our CPU/OpenMP Longstaff–Schwartz work. Cite as contemporary evidence that LSM is the right target for parallel acceleration and to position our CPU-multicore contribution against the GPU line of work.
+
+### Foundational — methodological precedent
+
+4. **Fusai, G., Marena, M. & Roncoroni, A. (2006).** *Grid Based Full Portfolio Revaluation for VaR Computation.*
+   - Supports: the closest published analogue to our architecture. Monte Carlo full-revaluation VaR on a 200-asset heterogeneous book (bonds + exotic equity derivatives), parallelized on a 13-node grid with master–worker thread pools and adaptive per-node workload sizing. Validates our scenario-parallel approach, the full-revaluation choice over delta-gamma, and the dynamic-workload-sizing rationale.
+
+5. **Dixon, M., Bradley, T., Chong, J. & Keutzer, K. (2011).** *Monte Carlo–Based Financial Market Value-at-Risk Estimation on GPUs.* In *GPU Computing Gems, Jade Edition*, Elsevier.
+   - Supports: the canonical GPU MC-VaR paper. Reports up to 169× speedup with 4,000 risk factors and identifies the three hot spots (RNG, distribution transform, portfolio loss calculation) that map onto our `ScenarioEvaluator` stages. Cite for the core claim that the scenario-revaluation loop is the right parallelization target.
+
+### Foundational — QuantLib parallelism + RNG
+
+6. **Spanderen, K. (2013).** *Beyond Simple Monte-Carlo: Parallel Computing with QuantLib.* QuantLib User Meeting, Düsseldorf. https://www.quantlib.org/slides/qlws13/spanderen.pdf
+   - Supports: the definitive QuantLib-specific guide to parallelization (OpenMP, MPI, GPU). Explicitly identifies the non-thread-safe observer pattern and the `Settings` singleton hazards, and recommends the per-thread independent-view pattern we implement via `ThreadContext`. Directly validates §10.2 and §16 of this plan.
+
+7. **Salmon, J. K., Moraes, M. A., Dror, R. O. & Shaw, D. E. (2011).** *Parallel Random Numbers: As Easy as 1, 2, 3.* **Proc. SC'11 (Best Paper).**
+   - Supports: the reference for counter-based Philox/Threefry RNGs — stateless, reproducible across thread counts, passes BigCrush. Justifies our V2 stretch goal and explains why the V1 per-thread MT19937 with widely-spaced seeds is a known-to-be-inferior interim choice.
 
 ## 16. Open questions — answered by testing
 
@@ -467,5 +496,5 @@ All experiments output CSV. Plotting via Python / matplotlib in a separate `benc
 
 ---
 
-**Status:** Phase 2 complete. Library class `ScenarioEvaluator` in ql_library. All Phase 2c experiments run and documented. Key results: 7.1× speedup at T=8 (89% efficiency), 32× at T=64 (50% efficiency, memory-bound). Dynamic chunk=4 beats static by 21% (load imbalance from FD solver cost variation). Per-thread balance excellent (2% spread at T=8). IPC 0.63→0.81 and cache-miss 4.69%→2.78% under parallelism. All VaR99 values bit-identical across all configurations (E9 confirmed). Next: Phase 3 — plotting, report writing.
+**Status:** Phase 2 complete + Dixon gap closed. Stage-by-stage timing added to both drivers (stage_timing_seq.csv / stage_timing_omp.csv). Sequential N=1000: RNG 0.0003s (0.002%), revaluation 13.51s (99.997%), tail stats 0.0002s (0.001%). Parallel 8T N=1000: RNG 0.001s, revaluation 2.11s, tail stats 0.0001s — **portfolio revaluation is 99.99% of runtime in both cases, exactly as Dixon's decomposition predicts.** All parallelization gaps from references now closed. Next: Phase 3 — plotting, report writing.
 

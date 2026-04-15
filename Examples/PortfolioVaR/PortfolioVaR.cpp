@@ -53,14 +53,17 @@ int main(int argc, char* argv[]) {
     std::cout << "Portfolio base NPV: " << totalBaseNPV << "\n";
     std::cout << "  Instruments: " << book.size() << "\n";
 
-    // --- Generate scenarios ---
-    std::cout << "Generating " << N_SCENARIOS << " scenarios..." << std::flush;
-    auto scenarios = generateScenarios(N_SCENARIOS);
-    std::cout << " done.\n";
+    using clk = std::chrono::steady_clock;
 
-    // --- Sequential revaluation loop ---
+    // --- Stage 1: Scenario generation (RNG + distribution transform) ---
+    auto ts0 = clk::now();
+    auto scenarios = generateScenarios(N_SCENARIOS);
+    double t_rng = std::chrono::duration<double>(clk::now() - ts0).count();
+    std::cout << "Stage 1 (scenario gen):    " << t_rng << " s\n";
+
+    // --- Stage 2: Portfolio revaluation ---
     std::cout << "Running sequential revaluation..." << std::flush;
-    auto t0 = std::chrono::steady_clock::now();
+    auto ts1 = clk::now();
 
     std::vector<double> pnl(N_SCENARIOS);
     for (int s = 0; s < N_SCENARIOS; ++s) {
@@ -69,12 +72,16 @@ int main(int argc, char* argv[]) {
             std::cout << "  " << (s + 1) << "/" << N_SCENARIOS << "\n" << std::flush;
     }
 
-    auto t1 = std::chrono::steady_clock::now();
-    double elapsed = std::chrono::duration<double>(t1 - t0).count();
-    std::cout << "Sequential time: " << elapsed << " s\n";
+    double t_reval = std::chrono::duration<double>(clk::now() - ts1).count();
+    double elapsed  = t_rng + t_reval;
+    std::cout << "Stage 2 (revaluation):     " << t_reval << " s\n";
 
-    // --- VaR / ES ---
+    // --- Stage 3: Tail statistics (sort + percentile) ---
+    auto ts2 = clk::now();
     VaRResult r = computeVaRES(pnl);
+    double t_stats = std::chrono::duration<double>(clk::now() - ts2).count();
+    std::cout << "Stage 3 (tail statistics): " << t_stats << " s\n";
+    std::cout << "Total time:                " << elapsed  << " s\n";
     std::cout << "\n=== VaR / ES Results ===\n";
     std::cout << "VaR(95%): " << r.var95 << "\n";
     std::cout << "VaR(99%): " << r.var99 << "\n";
@@ -98,7 +105,16 @@ int main(int argc, char* argv[]) {
         csv << "n_scenarios," << N_SCENARIOS << "\n";
         csv << "n_instruments," << book.size() << "\n";
     }
-    std::cout << "Output written to pnl_distribution.csv and var_summary.csv\n";
+    {
+        std::ofstream csv("stage_timing_seq.csv");
+        csv << "stage,time_s,pct\n";
+        double total = t_rng + t_reval + t_stats;
+        csv << "rng_scenario_gen," << t_rng   << "," << 100.0*t_rng/total   << "\n";
+        csv << "portfolio_reval,"  << t_reval << "," << 100.0*t_reval/total << "\n";
+        csv << "tail_statistics,"  << t_stats << "," << 100.0*t_stats/total << "\n";
+        csv << "total,"            << total   << ",100\n";
+    }
+    std::cout << "Output written to pnl_distribution.csv, var_summary.csv, stage_timing_seq.csv\n";
 
     return 0;
 }

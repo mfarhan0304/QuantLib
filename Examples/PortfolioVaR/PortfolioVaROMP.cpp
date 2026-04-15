@@ -83,9 +83,13 @@ int main(int argc, char* argv[]) {
     baseNPVs.reserve(refBook.size());
     for (auto& e : refBook) baseNPVs.push_back(e.baseNPV);
 
-    // --- Scenarios (generated sequentially, same seed as PortfolioVaR) ---
-    std::cout << "Generating " << N_SCENARIOS << " scenarios...\n";
+    using clk = std::chrono::steady_clock;
+
+    // --- Stage 1: Scenario generation (RNG + distribution transform) ---
+    auto ts0 = clk::now();
     auto scenarios = generateScenarios(N_SCENARIOS);
+    double t_rng = std::chrono::duration<double>(clk::now() - ts0).count();
+    std::cout << "Stage 1 (scenario gen):    " << std::setprecision(4) << t_rng << " s\n";
 
     // --- Build ScenarioEvaluator ---
     ScenarioEvaluatorConfig cfg;
@@ -124,25 +128,29 @@ int main(int argc, char* argv[]) {
         ctx.quotes[2]->setValue(std::max(0.001, baseVol + scenarios[s].deltaVol));
     };
 
-    // --- Parallel run ---
+    // --- Stage 2: Parallel portfolio revaluation ---
     auto pnlReal = ev.run(static_cast<Size>(N_SCENARIOS), shockFn);
+    double t_reval = ev.wallTime();
 
-    std::cout << "Wall time: " << std::setprecision(4) << ev.wallTime() << " s\n";
+    std::cout << "Stage 2 (revaluation):     " << std::setprecision(4) << t_reval << " s\n";
     std::cout << "Throughput: " << std::setprecision(1)
-              << N_SCENARIOS / ev.wallTime() << " scenarios/s\n";
+              << N_SCENARIOS / t_reval << " scenarios/s\n";
 
     // --- Per-thread busy time ---
     const auto& busy = ev.threadBusyTime();
     double totalBusy = std::accumulate(busy.begin(), busy.end(), 0.0);
-    double efficiency = (ev.wallTime() > 0)
-                        ? totalBusy / (ev.wallTime() * ev.nThreads()) * 100.0
+    double efficiency = (t_reval > 0)
+                        ? totalBusy / (t_reval * ev.nThreads()) * 100.0
                         : 0.0;
     std::cout << "Thread efficiency: " << std::setprecision(1)
               << efficiency << "%\n";
 
-    // Convert to double for VaR stats
+    // --- Stage 3: Tail statistics ---
     std::vector<double> pnl(pnlReal.begin(), pnlReal.end());
+    auto ts2 = clk::now();
     VaRResult result = computeVaRES(pnl);
+    double t_stats = std::chrono::duration<double>(clk::now() - ts2).count();
+    std::cout << "Stage 3 (tail statistics): " << std::setprecision(4) << t_stats << " s\n";
 
     std::cout << "\n=== VaR / ES Results ===\n";
     std::cout << "VaR(95%): " << std::fixed << std::setprecision(0)
@@ -172,6 +180,15 @@ int main(int argc, char* argv[]) {
         f << "efficiency_pct," << efficiency       << "\n";
     }
     {
+        std::ofstream f("stage_timing_omp.csv");
+        f << "stage,time_s,pct\n";
+        double total = t_rng + t_reval + t_stats;
+        f << "rng_scenario_gen," << t_rng   << "," << 100.0*t_rng/total   << "\n";
+        f << "portfolio_reval,"  << t_reval << "," << 100.0*t_reval/total << "\n";
+        f << "tail_statistics,"  << t_stats << "," << 100.0*t_stats/total << "\n";
+        f << "total,"            << total   << ",100\n";
+    }
+    {
         std::ofstream f("thread_busy_omp.csv");
         f << "thread_id,busy_s\n";
         for (Size t = 0; t < busy.size(); ++t)
@@ -179,6 +196,6 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Output written to pnl_distribution_omp.csv, "
-                 "var_summary_omp.csv, thread_busy_omp.csv\n";
+                 "var_summary_omp.csv, thread_busy_omp.csv, stage_timing_omp.csv\n";
     return 0;
 }
