@@ -175,6 +175,7 @@ set(QL_SOURCES
     experimental/processes/gemanroncoroniprocess.cpp
     experimental/processes/klugeextouprocess.cpp
     experimental/processes/vegastressedblackscholesprocess.cpp
+    experimental/risk/scenarioevaluator.cpp
     experimental/shortrate/generalizedhullwhite.cpp
     experimental/shortrate/generalizedornsteinuhlenbeckprocess.cpp
     experimental/swaptions/haganirregularswaptionengine.cpp
@@ -1201,6 +1202,7 @@ set(QL_HEADERS
     experimental/processes/klugeextouprocess.hpp
     experimental/processes/vegastressedblackscholesprocess.hpp
     experimental/risk/creditriskplus.hpp
+    experimental/risk/scenarioevaluator.hpp
     experimental/risk/sensitivityanalysis.hpp
     experimental/shortrate/generalizedhullwhite.hpp
     experimental/shortrate/generalizedornsteinuhlenbeckprocess.hpp

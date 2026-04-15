@@ -362,28 +362,42 @@ All experiments output CSV. Plotting via Python / matplotlib in a separate `benc
 ### Phase 2 — OpenMP parallelization (in `ql/experimental/risk/`)
 
 #### 2a. Library class scaffolding
-- [ ] Audit thread-safety: list all global state and shared handles touched by the sequential path
-- [ ] Add `find_package(OpenMP)` in `ql/CMakeLists.txt`; link `OpenMP::OpenMP_CXX` to `ql_library`
-- [ ] Add `-DQL_ENABLE_OPENMP` compile definition when OpenMP is found
-- [ ] Create `ql/experimental/risk/scenarioevaluator.hpp` — declare `ScenarioEvaluator`, `Config`, `ThreadContext`, `ContextFactory`, `ShockFn`, `Schedule`
-- [ ] Create `ql/experimental/risk/scenarioevaluator.cpp` — implementation with `#ifdef QL_ENABLE_OPENMP` guards and sequential fallback
-- [ ] Register both files in `ql/CMakeLists.txt` (`QL_HEADERS`, `QL_SOURCES`)
-- [ ] Rebuild QuantLib Release; verify `nm libQuantLib.so | grep ScenarioEvaluator`
+- [x] Audit thread-safety: list all global state and shared handles touched by the sequential path
+      - Settings singleton is global (not thread-local, confirmed §16). All shared mutable state is the MarketData (SimpleQuotes + linked handles). Mitigation: per-thread independent clones.
+- [x] Add `find_package(OpenMP)` in `ql/CMakeLists.txt`; link `OpenMP::OpenMP_CXX` to `ql_library`
+      - Already present in ql/CMakeLists.txt (applied unconditionally via `${OpenMP_CXX_FLAGS}`). Used `#ifdef _OPENMP` (standard compiler define) instead of a new cmake flag.
+- [x] Create `ql/experimental/risk/scenarioevaluator.hpp` — declare `ScenarioEvaluator`, `ScenarioEvaluatorConfig`, `ScenarioThreadContext`, `ContextFactory`, `ShockFn`, `ScenarioSchedule`
+- [x] Create `ql/experimental/risk/scenarioevaluator.cpp` — implementation with `#ifdef _OPENMP` guards, dynamic/static/guided schedule dispatch, per-thread busy-time accumulation, sequential fallback
+- [x] Register both files in `ql/CMakeLists.txt` (`QL_HEADERS`, `QL_SOURCES`)
+- [x] Rebuild QuantLib Release; verify `nm libQuantLib.so | grep ScenarioEvaluator`
+      - `ScenarioEvaluator::run` and constructor confirmed exported from libQuantLib.so
 
 #### 2b. Parallel loop correctness
-- [ ] Constructor: pre-build `nThreads` independent `ThreadContext`s via the factory
-- [ ] `run()`: `#pragma omp parallel for` over scenarios, each thread reading its own `ctxs[tid]`
-- [ ] Per-thread busy-time instrumentation with `omp_get_wtime()` into a thread-local accumulator
-- [ ] Per-thread RNG is a *driver* concern — scenarios are generated once, sequentially, then the evaluator only reads them (deterministic, reproducible)
-- [ ] Wire up `Examples/PortfolioVaR/PortfolioVaROMP.cpp` to use the new class: factory lambda calls `buildMarket()` + `buildPortfolio()`; shock lambda applies `scenarios[s]` to the context's quotes
-- [ ] **Correctness:** parallel run produces *bit-identical* P&L to sequential for the same seed (E9)
+- [x] Constructor: pre-build `nThreads` independent `ThreadContext`s via the factory
+- [x] `run()`: `#pragma omp parallel for` over scenarios, each thread reading its own `ctxs[tid]`
+- [x] Per-thread busy-time instrumentation with `omp_get_wtime()` into a thread-local accumulator
+- [x] Per-thread RNG is a *driver* concern — scenarios are generated once, sequentially, then the evaluator only reads them (deterministic, reproducible)
+- [x] Wire up `Examples/PortfolioVaR/PortfolioVaROMP.cpp` to use the new class: factory lambda calls `buildMarket()` + `buildPortfolio()`; shock lambda applies `scenarios[s]` to the context's quotes
+- [x] **Correctness (E9):** parallel run produces *bit-identical* P&L to sequential for the same seed
+      - 500-scenario run: seq VaR95=678339/VaR99=980501, par VaR95=678339/VaR99=980501. Exact match.
+      - 8-thread speedup at 500 scenarios: 5.38s → 1.20s = **4.5×** (74% thread efficiency)
 
 #### 2c. Experiments
-- [ ] Strong-scaling sweep: `nThreads = 1, 2, 4, 8, 16, 32, 64` at fixed 10K scenarios (E3)
-- [ ] Weak-scaling sweep: `nScenarios = 1K × nThreads` so per-thread work stays constant (E4)
-- [ ] Schedule comparison at 8 threads: static / dynamic / guided, chunk 1 / 16 / 64 (E5)
-- [ ] Per-thread busy-time histogram from `ScenarioEvaluator::threadBusyTime()` (E6)
-- [ ] `perf stat` cache profile under parallel run, compare to sequential (E7)
+- [x] Strong-scaling sweep: `nThreads = 1, 2, 4, 8, 16, 32, 64` at fixed 10K scenarios (E3)
+      - seq=126.1s. T=1:116.9s(1.08×) T=2:61.5s(2.05×) T=4:37.1s(3.40×) T=8:17.7s(7.13×) T=16:9.6s(13.1×) T=32:5.5s(22.9×) T=64:3.9s(32.0×)
+      - True parallel efficiency (speedup/T): 89% at T=8, falling to 50% at T=64 (memory-bandwidth saturation, per-thread clone pressure, NUMA)
+      - All VaR99 values identical (1,008,956) — correctness maintained at all thread counts
+- [x] Weak-scaling sweep: `nScenarios = 1K × nThreads` (E4)
+      - T=1:11.8s, T=2:12.4s(+5%), T=4:13.4s(+14%), T=8:14.1s(+20%), T=16:12.8s(≈flat), T=32:15.3s(+30%), T=64:22.4s(+90%)
+      - Good scaling through T=16; degradation at T=32/64 from per-thread clone memory pressure and OS scheduling overhead at extreme concurrency
+- [x] Schedule comparison at 8 threads (E5): static / dynamic chunk=1,4,16,64 / guided
+      - static:18.1s(88% eff) | dynamic-1:14.8s(99.9%) | **dynamic-4:14.3s(99.4%) ← best** | dynamic-16:15.9s | dynamic-64:17.4s | guided:17.0s
+      - Dynamic chunk=4 is 21% faster than static. Static's 88% efficiency reveals measurable load imbalance even though all scenarios reprice the same portfolio — FD solver cost varies with option moneyness (different vol/spot per scenario changes pricing grid iterations)
+- [x] Per-thread busy-time histogram (E6): T=8, N=10000, dynamic/16
+      - Thread busy times: 17.55–17.91s (range 0.36s = 2% spread). Near-perfect load balance with dynamic scheduling
+- [x] `perf stat` cache profile — parallel 8-thread vs sequential (E7)
+      - Parallel: IPC 0.81 (vs 0.63 seq), cache-miss rate 2.78% (vs 4.69% seq), 29.6B cycles (vs 37.0B)
+      - IPC improves 29% under parallelism: more independent instruction streams hide memory latency. Miss rate drops because per-thread working sets fit better in per-core caches
 
 #### 2d. Stretch
 - [ ] **(Stretch)** Alternative parallel form: `collapse(2)` over (scenario, instrument) — exposes intra-scenario load imbalance more sharply
@@ -453,5 +467,5 @@ All experiments output CSV. Plotting via Python / matplotlib in a separate `benc
 
 ---
 
-**Status:** Phase 1 complete. Sequential run 131.8s (10K scenarios, base NPV 517,806, VaR99=1,008,960). Validations: parametric VaR PASS (6.4% gap explained by convexity), B-S spot check PASS (machine precision), convergence CSV written (E1). Profiling: IPC 0.63 (memory-bound), 4.69% cache-miss rate, FD solver invisible to gprof — per-scenario pointer-chasing through observer graph stalls pipeline. Phase 2a next: create `ql/experimental/risk/scenarioevaluator.hpp/.cpp`, wire OpenMP into `ql_library`.
+**Status:** Phase 2 complete. Library class `ScenarioEvaluator` in ql_library. All Phase 2c experiments run and documented. Key results: 7.1× speedup at T=8 (89% efficiency), 32× at T=64 (50% efficiency, memory-bound). Dynamic chunk=4 beats static by 21% (load imbalance from FD solver cost variation). Per-thread balance excellent (2% spread at T=8). IPC 0.63→0.81 and cache-miss 4.69%→2.78% under parallelism. All VaR99 values bit-identical across all configurations (E9 confirmed). Next: Phase 3 — plotting, report writing.
 
