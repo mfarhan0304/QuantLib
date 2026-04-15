@@ -1,4 +1,4 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
 \bibitem{bcbs2019}
 {Basel Committee on Banking Supervision}.
@@ -10,6 +10,13 @@ Atef Bouchhima, Amira Jbeli, and Ridha Hamila.
 \newblock Efficient parallel {Monte-Carlo} techniques for pricing {American}
   options including counterparty credit risk.
 \newblock {\em International Journal of Computer Mathematics}, 101(8), 2024.
+
+\bibitem{cao2009}
+Jianwen Cao, Kendra~A. Novstrup, Ayush Goyal, Samuel~P. Midkiff, and James~M.
+  Caruthers.
+\newblock A parallel {Levenberg-Marquardt} algorithm.
+\newblock In {\em Proceedings of the 23rd International Conference on
+  Supercomputing (ICS'09)}. ACM, 2009.
 
 \bibitem{crepey2025}
 St{\'e}phane Cr{\'e}pey, Noufel Frikha, and Azar Louzi.
@@ -35,11 +42,22 @@ Gianluca Fusai, Marina Marena, and Andrea Roncoroni.
 \newblock Grid based full portfolio revaluation for {VaR} computation.
 \newblock In {\em Working Paper}, 2006.
 
+\bibitem{lin2016}
+Youzuo Lin, Daniel O'Malley, and Velimir~V. Vesselinov.
+\newblock A computationally efficient parallel {Levenberg-Marquardt} algorithm
+  for highly parameterized inverse model analyses.
+\newblock {\em Water Resources Research}, 52(9), 2016.
+
 \bibitem{salmon2011}
 John~K. Salmon, Mark~A. Moraes, Ron~O. Dror, and David~E. Shaw.
 \newblock Parallel random numbers: As easy as 1, 2, 3.
 \newblock In {\em Proceedings of SC'11}, 2011.
 \newblock Best Paper Award.
+
+\bibitem{schnabel2025}
+Constantin Schnabel et~al.
+\newblock Parallel {Levenberg-Marquardt} for nonlinear least squares.
+\newblock {\em Journal of Global Optimization}, 2025.
 
 \bibitem{spanderen2013}
 Klaus Spanderen.

@@ -1,0 +1,19 @@
+# started on Wed Apr 15 13:54:06 2026
+
+
+ Performance counter stats for './BermudanSwaptionOMP -t 8 -steps 300 -g2pts 128':
+
+         56,278.23 msec task-clock:u                     #    2.593 CPUs utilized             
+   120,678,596,063      cycles:u                         #    2.144 GHz                         (66.64%)
+    90,423,740,967      instructions:u                   #    0.75  insn per cycle              (83.35%)
+       178,074,598      cache-references:u               #    3.164 M/sec                       (83.32%)
+        21,443,098      cache-misses:u                   #   12.04% of all cache refs           (50.04%)
+        99,395,688      L1-dcache-load-misses:u                                                 (66.68%)
+        57,824,116      branch-misses:u                                                         (83.33%)
+
+      21.700555075 seconds time elapsed
+
+      52.285147000 seconds user
+       1.534800000 seconds sys
+
+

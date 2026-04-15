@@ -45,6 +45,13 @@ namespace QuantLib::MINPACK {
                              Real* fjac, int* iflag, Real epsfcn,
                              const std::vector<LmdifCostFunction>& fcns);
 
+        // Process-wide Jacobian-phase diagnostics. resetJacobianStats() zeroes
+        // the accumulators; jacobianSeconds() / jacobianCalls() read them.
+        // Accumulates time spent inside both fdjac2 and fdjac2_parallel.
+        void resetJacobianStats();
+        double jacobianSeconds();
+        long long jacobianCalls();
+
         void lmdif(int m,int n,Real* x,Real* fvec,Real ftol,
                    Real xtol,Real gtol,int maxfev,Real epsfcn,
                    Real* diag, int mode, Real factor,

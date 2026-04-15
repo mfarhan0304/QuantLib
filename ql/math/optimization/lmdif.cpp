@@ -62,6 +62,7 @@ or guarantee.
 */
 
 #include <ql/math/optimization/lmdif.hpp>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <vector>
@@ -70,6 +71,24 @@ or guarantee.
 #endif
 
 namespace QuantLib::MINPACK {
+
+// Process-wide accumulators for Jacobian-phase diagnostics. Not thread-safe
+// across concurrent lmdif invocations; the driver is expected to reset before
+// a measured minimize() and read after. Simple scalars are sufficient because
+// the parallel regions inside fdjac2_parallel complete before we touch these.
+namespace {
+    double g_jacSeconds = 0.0;
+    long long g_jacCalls = 0;
+}
+
+void resetJacobianStats() {
+    g_jacSeconds = 0.0;
+    g_jacCalls = 0;
+}
+
+double jacobianSeconds() { return g_jacSeconds; }
+long long jacobianCalls() { return g_jacCalls; }
+
 #define BUG 0
 /* resolution of arithmetic */
 double MACHEP = 1.2e-16;
@@ -347,6 +366,7 @@ void fdjac2(int m,
     Real eps, h, temp;
     static double zero = 0.0;
 
+    auto _jac_t0 = std::chrono::steady_clock::now();
 
     temp = dmax1(epsfcn, MACHEP);
     eps = std::sqrt(temp);
@@ -358,14 +378,21 @@ void fdjac2(int m,
             h = eps;
         x[j] = temp + h;
         fcn(m, n, x, wa, iflag);
-        if (*iflag < 0)
+        if (*iflag < 0) {
+            g_jacSeconds += std::chrono::duration<double>(
+                std::chrono::steady_clock::now() - _jac_t0).count();
+            g_jacCalls += 1;
             return;
+        }
         x[j] = temp;
         for (i = 0; i < m; i++) {
             fjac[ij] = (wa[i] - fvec[i]) / h;
             ij += 1; /* fjac[i+m*j] */
         }
     }
+    g_jacSeconds += std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - _jac_t0).count();
+    g_jacCalls += 1;
 /*
 *     last card of subroutine fdjac2.
 */
@@ -387,6 +414,8 @@ void fdjac2(int m,
 void fdjac2_parallel(int m, int n, const Real* x_base, const Real* fvec,
                      Real* fjac, int* iflag, Real epsfcn,
                      const std::vector<LmdifCostFunction>& fcns) {
+
+    auto _jac_t0 = std::chrono::steady_clock::now();
 
     const Real temp_machep = dmax1(epsfcn, MACHEP);
     const Real eps = std::sqrt(temp_machep);
@@ -439,6 +468,9 @@ void fdjac2_parallel(int m, int n, const Real* x_base, const Real* fvec,
 #endif
 
     *iflag = shared_iflag;
+    g_jacSeconds += std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - _jac_t0).count();
+    g_jacCalls += 1;
 }
 
 /************************qrfac.c*************************/

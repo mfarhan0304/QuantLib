@@ -21,8 +21,8 @@
 #include <ql/models/shortrate/calibrationhelpers/swaptionhelper.hpp>
 #include <ql/models/shortrate/twofactormodels/g2.hpp>
 #include <ql/models/shortrate/onefactormodels/hullwhite.hpp>
-#include <ql/models/shortrate/onefactormodels/blackkarasinski.hpp>
 #include <ql/math/optimization/levenbergmarquardt.hpp>
+#include <ql/math/optimization/lmdif.hpp>
 #include <ql/math/optimization/problem.hpp>
 #include <ql/math/optimization/constraint.hpp>
 #include <ql/math/optimization/costfunction.hpp>
@@ -179,9 +179,7 @@ void calibrateParallel(const std::string& label,
                        EngineFactory makeEngine,
                        int nThreads,
                        bool useSequential) {
-    std::cout << "=== " << label
-              << (useSequential ? " (sequential)" : " (parallel)")
-              << ", threads=" << nThreads << " ===\n";
+    const int effectiveThreads = useSequential ? 1 : nThreads;
 
     auto main = buildContext<Model>(mkt, makeModel, makeEngine);
 
@@ -201,19 +199,39 @@ void calibrateParallel(const std::string& label,
 
     EndCriteria endCriteria(400, 100, 1.0e-8, 1.0e-8, 1.0e-8);
 
+    MINPACK::resetJacobianStats();
     auto t0 = std::chrono::steady_clock::now();
     lm.minimize(*main.problem, endCriteria);
     auto t1 = std::chrono::steady_clock::now();
+    double jacSeconds = MINPACK::jacobianSeconds();
+    long long jacCalls = MINPACK::jacobianCalls();
 
     // Pull the solution back into the main model (mirror CalibratedModel::calibrate).
     main.model->setParams(main.problem->currentValue());
 
     double wall = std::chrono::duration<double>(t1 - t0).count();
     const Array& p = main.model->params();
-    std::cout << "  wall = " << std::fixed << std::setprecision(3) << wall << " s\n";
+
+    std::cout << "=== " << label
+              << (useSequential ? " (sequential)" : " (parallel)")
+              << ", threads=" << effectiveThreads << " ===\n";
+    std::cout << "  wall = " << std::fixed << std::setprecision(4) << wall
+              << " s,  jacobian = " << jacSeconds
+              << " s (" << std::setprecision(1)
+              << (wall > 0.0 ? 100.0 * jacSeconds / wall : 0.0)
+              << "%), jac_calls = " << jacCalls << "\n";
     std::cout << "  params =";
     for (Size i = 0; i < p.size(); ++i)
         std::cout << " " << std::setprecision(8) << p[i];
+    std::cout << "\n";
+
+    // Machine-readable line for bench harness: parseable with split(',')
+    std::cout << "CSV," << label << "," << effectiveThreads << ","
+              << (useSequential ? "seq" : "par") << ","
+              << std::setprecision(6) << wall << ","
+              << jacSeconds << "," << jacCalls;
+    for (Size i = 0; i < p.size(); ++i)
+        std::cout << "," << std::setprecision(10) << p[i];
     std::cout << std::endl;
 }
 
@@ -238,6 +256,10 @@ int main(int argc, char* argv[]) {
 #ifdef _OPENMP
         if (nThreads <= 0)
             nThreads = omp_get_max_threads();
+        // Suppress nested parallelism so inner pragmas (e.g. TreeLattice::stepback)
+        // don't oversubscribe cores. Only our fdjac2_parallel outer region uses
+        // num_threads(nt) to get real parallelism.
+        omp_set_max_active_levels(1);
 #else
         nThreads = 1;
         useSequential = true;
@@ -266,6 +288,20 @@ int main(int argc, char* argv[]) {
             },
             nThreads, useSequential);
 
+        // --- Hull-White analytic (n = 2) — no inner OMP, clean fdjac2 test ---
+        calibrateParallel<HullWhite>(
+            "HullWhite analytic",
+            mkt,
+            [](const Handle<YieldTermStructure>& c) {
+                return ext::make_shared<HullWhite>(c);
+            },
+            [](const ext::shared_ptr<HullWhite>& model,
+               const Handle<YieldTermStructure>&) {
+                return ext::shared_ptr<PricingEngine>(
+                    ext::make_shared<JamshidianSwaptionEngine>(model));
+            },
+            nThreads, useSequential);
+
         // --- Hull-White numerical (n = 2) ---
         calibrateParallel<HullWhite>(
             "HullWhite numerical",
@@ -274,20 +310,6 @@ int main(int argc, char* argv[]) {
                 return ext::make_shared<HullWhite>(c);
             },
             [treeSteps](const ext::shared_ptr<HullWhite>& model,
-                        const Handle<YieldTermStructure>&) {
-                return ext::shared_ptr<PricingEngine>(
-                    ext::make_shared<TreeSwaptionEngine>(model, treeSteps));
-            },
-            nThreads, useSequential);
-
-        // --- Black-Karasinski (n = 2) ---
-        calibrateParallel<BlackKarasinski>(
-            "BlackKarasinski numerical",
-            mkt,
-            [](const Handle<YieldTermStructure>& c) {
-                return ext::make_shared<BlackKarasinski>(c);
-            },
-            [treeSteps](const ext::shared_ptr<BlackKarasinski>& model,
                         const Handle<YieldTermStructure>&) {
                 return ext::shared_ptr<PricingEngine>(
                     ext::make_shared<TreeSwaptionEngine>(model, treeSteps));
