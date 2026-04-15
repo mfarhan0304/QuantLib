@@ -27,13 +27,23 @@
 
 #include <ql/types.hpp>
 #include <functional>
+#include <vector>
 
 namespace QuantLib::MINPACK {
         typedef std::function<void (int,
-                                      int, 
+                                      int,
                                       Real*,
                                       Real*,
                                       int*)> LmdifCostFunction;
+
+        // Parallel forward-difference Jacobian approximation.
+        // fcns[tid] is called by OpenMP thread tid — each must be an independent,
+        // thread-safe evaluator (e.g. built from per-thread model clones).
+        // When _OPENMP is not defined the function falls back to sequential
+        // evaluation using fcns[0].
+        void fdjac2_parallel(int m, int n, const Real* x, const Real* fvec,
+                             Real* fjac, int* iflag, Real epsfcn,
+                             const std::vector<LmdifCostFunction>& fcns);
 
         void lmdif(int m,int n,Real* x,Real* fvec,Real ftol,
                    Real xtol,Real gtol,int maxfev,Real epsfcn,

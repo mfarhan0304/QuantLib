@@ -26,6 +26,7 @@
 #define quantlib_optimization_levenberg_marquardt_hpp
 
 #include <ql/math/optimization/problem.hpp>
+#include <vector>
 
 namespace QuantLib {
 
@@ -55,11 +56,21 @@ namespace QuantLib {
         EndCriteria::Type minimize(Problem& P,
                                    const EndCriteria& endCriteria) override;
 
+        // Enable OpenMP-parallel forward-difference Jacobian.
+        // Each entry must be an independent Problem clone owning its own
+        // model/instrument state; one is consumed per OpenMP thread during
+        // the Jacobian phase. The vector size sets the thread count.
+        // Ignored when useCostFunctionsJacobian=true.
+        void setParallelProblems(std::vector<Problem*> problems);
+
       private:
         void fcn(int m, int n, Real* x, Real* fvec);
         void jacFcn(int m, int n, Real* x, Real* fjac);
+        void fcnForProblem(Problem& problem,
+                           int m, int n, Real* x, Real* fvec);
 
         Problem* currentProblem_;
+        std::vector<Problem*> parallelProblems_;
         Array initCostValues_;
         Matrix initJacobian_;
         mutable Integer info_ = 0; // remove together with getInfo

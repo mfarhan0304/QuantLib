@@ -25,6 +25,8 @@
 #include <cmath>
 #include <functional>
 #include <memory>
+#include <utility>
+#include <vector>
 
 namespace QuantLib {
 
@@ -34,6 +36,10 @@ namespace QuantLib {
                                            bool useCostFunctionsJacobian)
     : epsfcn_(epsfcn), xtol_(xtol), gtol_(gtol),
       useCostFunctionsJacobian_(useCostFunctionsJacobian) {}
+
+    void LevenbergMarquardt::setParallelProblems(std::vector<Problem*> problems) {
+        parallelProblems_ = std::move(problems);
+    }
 
     EndCriteria::Type LevenbergMarquardt::minimize(Problem& P,
                                                    const EndCriteria& endCriteria) {
@@ -84,12 +90,39 @@ namespace QuantLib {
             [this](const auto m, const auto n, const auto x, const auto fvec, [[maybe_unused]] const auto iflag) {
                 this->fcn(m, n, x, fvec);
             };
-        MINPACK::LmdifCostFunction lmdifJacFunction =
-            useCostFunctionsJacobian_
-                ? [this](const auto m, const auto n, const auto x, const auto fjac, [[maybe_unused]] const auto iflag) {
-                    this->jacFcn(m, n, x, fjac);
-                }
-                : MINPACK::LmdifCostFunction();
+        MINPACK::LmdifCostFunction lmdifJacFunction;
+        if (useCostFunctionsJacobian_) {
+            lmdifJacFunction =
+                [this](const auto m_, const auto n_, const auto x_, const auto fjac_,
+                       [[maybe_unused]] const auto iflag_) {
+                    this->jacFcn(m_, n_, x_, fjac_);
+                };
+        } else if (!parallelProblems_.empty()) {
+            // Parallel forward-difference Jacobian: build one thread-safe
+            // evaluator per cloned Problem and route lmdif's jacFcn hook
+            // through fdjac2_parallel. fvec at the base point is owned by
+            // this scope, so the lambda captures it directly.
+            std::vector<MINPACK::LmdifCostFunction> perThreadFcns;
+            perThreadFcns.reserve(parallelProblems_.size());
+            for (Problem* problem : parallelProblems_) {
+                perThreadFcns.emplace_back(
+                    [this, problem](const auto m_, const auto n_, const auto x_,
+                                    const auto fvec_,
+                                    [[maybe_unused]] const auto iflag_) {
+                        this->fcnForProblem(*problem, m_, n_, x_, fvec_);
+                    });
+            }
+            Real* fvec_ptr = fvec.get();
+            const Real epsfcn_local = epsfcn_;
+            lmdifJacFunction =
+                [fvec_ptr, epsfcn_local, fcns = std::move(perThreadFcns)]
+                (const auto m_, const auto n_, const auto x_, const auto fjac_,
+                 const auto iflag_) {
+                    MINPACK::fdjac2_parallel(m_, n_, x_, fvec_ptr,
+                                             fjac_, iflag_,
+                                             epsfcn_local, fcns);
+                };
+        }
         MINPACK::lmdif(m, n, xx.begin(), fvec.get(),
                        endCriteria.functionEpsilon(),
                        xtol_,
@@ -137,6 +170,27 @@ namespace QuantLib {
         P.setFunctionValue(P.costFunction().value(P.currentValue()));
 
         return ecType;
+    }
+
+    void LevenbergMarquardt::fcnForProblem(Problem& problem,
+                                           int, int n, Real* x, Real* fvec) {
+        Array xt(n);
+        std::copy(x, x+n, xt.begin());
+        if (problem.constraint().test(xt)) {
+            const Array& tmp = problem.values(xt);
+            bool valid = true;
+            for (Real i : tmp) {
+                if (!std::isfinite(i)) {
+                    valid = false;
+                    break;
+                }
+            }
+            if (valid) {
+                std::copy(tmp.begin(), tmp.end(), fvec);
+                return;
+            }
+        }
+        std::fill(fvec, fvec + initCostValues_.size(), 1.0e10);
     }
 
     void LevenbergMarquardt::fcn(int, int n, Real* x, Real* fvec) {

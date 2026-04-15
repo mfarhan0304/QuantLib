@@ -2410,12 +2410,9 @@ set_target_properties(ql_library PROPERTIES
 target_compile_definitions(ql_library PRIVATE
     QL_COMPILATION)
 
-target_compile_options(ql_library PRIVATE
-    ${OpenMP_CXX_FLAGS})
-
 # CMAKE_CXX_STANDARD is always set in top-level CMakeLists
 target_compile_features(ql_library PUBLIC
-    cxx_std_${CMAKE_CXX_STANDARD})  
+    cxx_std_${CMAKE_CXX_STANDARD})
 
 if(MSVC AND CMAKE_UNITY_BUILD)
     # for Unity builds, we need to add /bigobj
@@ -2432,11 +2429,13 @@ target_include_directories(ql_library PUBLIC
     $<INSTALL_INTERFACE:${QL_INSTALL_INCLUDEDIR}>)
 
 target_include_directories(ql_library SYSTEM PUBLIC
-    ${Boost_INCLUDE_DIRS}
-    ${OpenMP_CXX_INCLUDE_DIRS})
+    ${Boost_INCLUDE_DIRS})
 
-target_link_libraries(ql_library PUBLIC
-    ${OpenMP_CXX_LIBRARIES})
+# Use the modern imported target so compile flags, include dirs, and link
+# libraries (libgomp) all propagate PUBLIC to every consumer of ql_library.
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(ql_library PUBLIC OpenMP::OpenMP_CXX)
+endif()
 
 install(TARGETS ql_library EXPORT QuantLibTargets
     ARCHIVE DESTINATION ${QL_INSTALL_LIBDIR}

@@ -64,6 +64,10 @@ or guarantee.
 #include <ql/math/optimization/lmdif.hpp>
 #include <cmath>
 #include <cstdio>
+#include <vector>
+#ifdef _OPENMP
+#  include <omp.h>
+#endif
 
 namespace QuantLib::MINPACK {
 #define BUG 0
@@ -366,6 +370,77 @@ void fdjac2(int m,
 *     last card of subroutine fdjac2.
 */
 }
+
+// ---------------------------------------------------------------------------
+// fdjac2_parallel
+//
+// Drop-in parallel replacement for fdjac2 that evaluates each Jacobian column
+// on a separate OpenMP thread.  fcns must contain one independent
+// LmdifCostFunction per thread (built from per-thread model clones so that
+// no mutable state is shared across threads).
+//
+// Thread j writes to fjac column j (offset j*m), which is non-overlapping,
+// so no synchronisation on fjac is needed.
+//
+// When _OPENMP is not defined, falls back to a sequential loop using fcns[0].
+// ---------------------------------------------------------------------------
+void fdjac2_parallel(int m, int n, const Real* x_base, const Real* fvec,
+                     Real* fjac, int* iflag, Real epsfcn,
+                     const std::vector<LmdifCostFunction>& fcns) {
+
+    const Real temp_machep = dmax1(epsfcn, MACHEP);
+    const Real eps = std::sqrt(temp_machep);
+
+    int shared_iflag = 1; // track errors across threads
+
+#ifdef _OPENMP
+    const int nt = static_cast<int>(fcns.size());
+    #pragma omp parallel for schedule(static) num_threads(nt)
+    for (int j = 0; j < n; j++) {
+        const int tid = omp_get_thread_num();
+
+        // Per-thread copies — no cross-thread aliasing on x or wa.
+        std::vector<Real> x_local(x_base, x_base + n);
+        std::vector<Real> wa_local(m);
+
+        Real temp_j = x_local[j];
+        Real h = eps * std::fabs(temp_j);
+        if (h == 0.0) h = eps;
+        x_local[j] = temp_j + h;
+
+        int local_iflag = 1;
+        fcns[tid](m, n, x_local.data(), wa_local.data(), &local_iflag);
+        if (local_iflag < 0) {
+            #pragma omp atomic write
+            shared_iflag = local_iflag;
+        }
+
+        // Column j occupies fjac[j*m .. j*m+m-1] — non-overlapping writes.
+        const int col_offset = j * m;
+        for (int i = 0; i < m; i++)
+            fjac[col_offset + i] = (wa_local[i] - fvec[i]) / h;
+    }
+#else
+    // Sequential fallback: use fcns[0] (identical behaviour to fdjac2).
+    std::vector<Real> x_local(x_base, x_base + n);
+    std::vector<Real> wa_local(m);
+    int ij = 0;
+    for (int j = 0; j < n; j++) {
+        Real temp_j = x_local[j];
+        Real h = eps * std::fabs(temp_j);
+        if (h == 0.0) h = eps;
+        x_local[j] = temp_j + h;
+        int local_iflag = 1;
+        fcns[0](m, n, x_local.data(), wa_local.data(), &local_iflag);
+        if (local_iflag < 0) { shared_iflag = local_iflag; break; }
+        x_local[j] = temp_j;
+        for (int i = 0; i < m; i++) { fjac[ij] = (wa_local[i] - fvec[i]) / h; ij++; }
+    }
+#endif
+
+    *iflag = shared_iflag;
+}
+
 /************************qrfac.c*************************/
 
 
