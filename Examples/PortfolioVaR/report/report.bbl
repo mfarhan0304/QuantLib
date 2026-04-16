@@ -1,5 +1,11 @@
 \begin{thebibliography}{10}
 
+\bibitem{quantlib_repo}
+Ferdinando Ametrano, Luigi Ballabio, et~al.
+\newblock {QuantLib}: A free/open-source library for quantitative finance.
+\newblock \url{https://github.com/lballabio/QuantLib}, 2000--2026.
+\newblock Accessed 2026-04-15.
+
 \bibitem{bcbs2019}
 {Basel Committee on Banking Supervision}.
 \newblock Minimum capital requirements for market risk.

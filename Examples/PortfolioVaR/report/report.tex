@@ -87,9 +87,9 @@ asymptotic complexity of ES estimation~\cite{crepey2025}.  However,
 up-to-date empirical studies of \emph{CPU multicore} scaling on a
 realistic, heterogeneous QuantLib portfolio are lacking.
 This paper fills that gap: we instrument a production-representative
-mixed book in QuantLib, profile the hot path, implement a
-thread-safe OpenMP engine as a first-class library class, and
-report scaling results across the full thread-count range of a
+mixed book in QuantLib~\cite{quantlib_repo}, profile the hot path,
+implement a thread-safe OpenMP engine as a first-class library class,
+and report scaling results across the full thread-count range of a
 64-core server.
 
 %% ============================================================
@@ -782,6 +782,82 @@ for American options.
 in-parallel scenario generation.
 (4) Cholesky-correlated factor model~\cite{dixon2011,fusai2006}
 to close the zero-correlation simplification.
+
+%% ============================================================
+\section{Artifact: Files Created and Modified}
+\label{sec:artifact}
+
+All Track~B modifications are applied to the upstream
+QuantLib source tree~\cite{quantlib_repo}
+(\url{https://github.com/lballabio/QuantLib}).  The artifact lives in
+a self-contained \texttt{Project/} directory that mirrors the upstream
+layout and builds a trimmed library plus the single benchmark
+executable.  For every modified library file we ship the pristine
+upstream copy alongside as \texttt{*-og.*} so the delta is auditable by
+\texttt{diff}.
+
+\paragraph{Modified library files (\texttt{ql/math/optimization/}).}
+\begin{itemize}[noitemsep]
+  \item \texttt{lmdif.hpp} --- adds the second
+    \texttt{LmdifCostFunction jacFcn} parameter to
+    \texttt{lmdif()} so the parallel Jacobian callback can be
+    threaded in without touching the serial path.
+  \item \texttt{lmdif.cpp} --- adds
+    \texttt{fdjac2\_parallel}, a new entry point that evaluates the
+    $n$~finite-difference Jacobian columns across OpenMP threads,
+    with each column writing into a disjoint stripe of \texttt{fjac}.
+    The original \texttt{fdjac2} is left untouched.
+  \item \texttt{levenbergmarquardt.hpp} --- exposes a new
+    \texttt{setParallelProblems(std::vector<Problem*>)} API plus
+    accessors for the per-thread clone vector used by
+    \texttt{fdjac2\_parallel}.
+  \item \texttt{levenbergmarquardt.cpp} --- routes the new API into
+    \texttt{lmdif()}, constructing the \texttt{jacFcn} lambda that
+    dispatches to \texttt{fdjac2\_parallel} when clones are
+    registered and falling back to the serial path otherwise.
+\end{itemize}
+
+\paragraph{New files (\texttt{Examples/BermudanSwaption/}).}
+\begin{itemize}[noitemsep]
+  \item \texttt{BermudanSwaptionOMP.cpp} --- the benchmark driver.
+    Structurally identical to the upstream
+    \texttt{BermudanSwaption.cpp} example (G2, Hull--White analytic,
+    Hull--White numerical, Black--Karasinski; tree vs.\ FDM pricing
+    matrix; ATM/OTM/ITM Bermudan pricing) with the single
+    \texttt{model->calibrate()} call replaced by a templated
+    \texttt{calibrateModelParallel<>()} helper that builds
+    $N$ per-thread clones of (curve, model, helpers, cost-function,
+    problem) and hands them to \texttt{setParallelProblems()}. It
+    also adds an OpenMP ICV tripod
+    (\texttt{omp\_set\_max\_active\_levels(1)},
+    \texttt{omp\_set\_dynamic(0)},
+    \texttt{omp\_set\_num\_threads(T)}) to suppress the nested
+    \texttt{TreeLattice::stepback} inner \texttt{pragma omp parallel
+    for} and avoid $T^2$ oversubscription.
+  \item \texttt{bench/run\_exp.sh} --- parallel LM Jacobian benchmark
+    sweep. Runs the sequential baseline
+    (\texttt{OMP\_NUM\_THREADS=1}) followed by parallel runs at
+    $T\in\{2,4,8\}$, emitting the \texttt{model,threads,mode,wall\_s,
+    jac\_s,jac\_calls,params} CSV to \texttt{stdout} and progress
+    lines to \texttt{stderr}. Uses \texttt{LD\_PRELOAD} to force the
+    trimmed local \texttt{libQuantLib.so.1} over the binary's
+    \texttt{DT\_RPATH}, and sets \texttt{OMP\_STACKSIZE=256M} which
+    is required for HW-numerical at $T{=}8$ (128~MB segfaults).
+  \item \texttt{bench/plot\_exp.py} --- consumes
+    \texttt{exp\_results.csv} and generates the three Track~B
+    figures: fig8 wall-clock speedup bar chart at $T{=}8$, fig9
+    strong-scaling curve of the Jacobian phase, and fig10 the
+    Jacobian share of LM calibration under the sequential baseline.
+\end{itemize}
+
+\paragraph{Reference copies for audit.}
+Alongside each modified library source we keep the pristine upstream
+version with the suffix \texttt{-og} (\texttt{lmdif-og.cpp},
+\texttt{lmdif-og.hpp}, \texttt{levenbergmarquardt-og.cpp},
+\texttt{levenbergmarquardt-og.hpp}, and
+\texttt{BermudanSwaptionOMP-og.cpp}), so the Track~B delta can be
+inspected with a single \texttt{diff -u} per file against the
+upstream repository at the commit referenced in~\cite{quantlib_repo}.
 
 %% ============================================================
 \bibliographystyle{plain}
