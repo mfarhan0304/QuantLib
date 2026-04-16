@@ -55,6 +55,7 @@ namespace QuantLib {
                            bool useCostFunctionsJacobian = false);
         EndCriteria::Type minimize(Problem& P,
                                    const EndCriteria& endCriteria) override;
+<<<<<<< HEAD
 
         // Enable OpenMP-parallel forward-difference Jacobian.
         // Each entry must be an independent Problem clone owning its own
@@ -62,12 +63,17 @@ namespace QuantLib {
         // the Jacobian phase. The vector size sets the thread count.
         // Ignored when useCostFunctionsJacobian=true.
         void setParallelProblems(std::vector<Problem*> problems);
+=======
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
 
       private:
         void fcn(int m, int n, Real* x, Real* fvec);
         void jacFcn(int m, int n, Real* x, Real* fjac);
+<<<<<<< HEAD
         void fcnForProblem(Problem& problem,
                            int m, int n, Real* x, Real* fvec);
+=======
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
 
         Problem* currentProblem_;
         std::vector<Problem*> parallelProblems_;

@@ -27,11 +27,18 @@
 
 #include <ql/types.hpp>
 #include <functional>
+<<<<<<< HEAD
 #include <vector>
 
 namespace QuantLib::MINPACK {
         typedef std::function<void (int,
                                       int,
+=======
+
+namespace QuantLib::MINPACK {
+        typedef std::function<void (int,
+                                      int, 
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
                                       Real*,
                                       Real*,
                                       int*)> LmdifCostFunction;

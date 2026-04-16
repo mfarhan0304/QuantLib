@@ -18,4 +18,7 @@ add_subdirectory(MultidimIntegral)
 add_subdirectory(MulticurveBootstrapping)
 add_subdirectory(Replication)
 add_subdirectory(Repo)
+<<<<<<< HEAD
 add_subdirectory(PortfolioVaR)
+=======
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa

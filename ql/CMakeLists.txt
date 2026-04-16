@@ -175,7 +175,10 @@ set(QL_SOURCES
     experimental/processes/gemanroncoroniprocess.cpp
     experimental/processes/klugeextouprocess.cpp
     experimental/processes/vegastressedblackscholesprocess.cpp
+<<<<<<< HEAD
     experimental/risk/scenarioevaluator.cpp
+=======
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
     experimental/shortrate/generalizedhullwhite.cpp
     experimental/shortrate/generalizedornsteinuhlenbeckprocess.cpp
     experimental/swaptions/haganirregularswaptionengine.cpp
@@ -1202,7 +1205,10 @@ set(QL_HEADERS
     experimental/processes/klugeextouprocess.hpp
     experimental/processes/vegastressedblackscholesprocess.hpp
     experimental/risk/creditriskplus.hpp
+<<<<<<< HEAD
     experimental/risk/scenarioevaluator.hpp
+=======
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
     experimental/risk/sensitivityanalysis.hpp
     experimental/shortrate/generalizedhullwhite.hpp
     experimental/shortrate/generalizedornsteinuhlenbeckprocess.hpp
@@ -2410,9 +2416,18 @@ set_target_properties(ql_library PROPERTIES
 target_compile_definitions(ql_library PRIVATE
     QL_COMPILATION)
 
+<<<<<<< HEAD
 # CMAKE_CXX_STANDARD is always set in top-level CMakeLists
 target_compile_features(ql_library PUBLIC
     cxx_std_${CMAKE_CXX_STANDARD})
+=======
+target_compile_options(ql_library PRIVATE
+    ${OpenMP_CXX_FLAGS})
+
+# CMAKE_CXX_STANDARD is always set in top-level CMakeLists
+target_compile_features(ql_library PUBLIC
+    cxx_std_${CMAKE_CXX_STANDARD})  
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
 
 if(MSVC AND CMAKE_UNITY_BUILD)
     # for Unity builds, we need to add /bigobj
@@ -2429,6 +2444,7 @@ target_include_directories(ql_library PUBLIC
     $<INSTALL_INTERFACE:${QL_INSTALL_INCLUDEDIR}>)
 
 target_include_directories(ql_library SYSTEM PUBLIC
+<<<<<<< HEAD
     ${Boost_INCLUDE_DIRS})
 
 # Use the modern imported target so compile flags, include dirs, and link
@@ -2436,6 +2452,13 @@ target_include_directories(ql_library SYSTEM PUBLIC
 if(OpenMP_CXX_FOUND)
     target_link_libraries(ql_library PUBLIC OpenMP::OpenMP_CXX)
 endif()
+=======
+    ${Boost_INCLUDE_DIRS}
+    ${OpenMP_CXX_INCLUDE_DIRS})
+
+target_link_libraries(ql_library PUBLIC
+    ${OpenMP_CXX_LIBRARIES})
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
 
 install(TARGETS ql_library EXPORT QuantLibTargets
     ARCHIVE DESTINATION ${QL_INSTALL_LIBDIR}

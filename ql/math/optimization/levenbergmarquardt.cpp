@@ -25,8 +25,11 @@
 #include <cmath>
 #include <functional>
 #include <memory>
+<<<<<<< HEAD
 #include <utility>
 #include <vector>
+=======
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
 
 namespace QuantLib {
 
@@ -36,10 +39,13 @@ namespace QuantLib {
                                            bool useCostFunctionsJacobian)
     : epsfcn_(epsfcn), xtol_(xtol), gtol_(gtol),
       useCostFunctionsJacobian_(useCostFunctionsJacobian) {}
+<<<<<<< HEAD
 
     void LevenbergMarquardt::setParallelProblems(std::vector<Problem*> problems) {
         parallelProblems_ = std::move(problems);
     }
+=======
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
 
     EndCriteria::Type LevenbergMarquardt::minimize(Problem& P,
                                                    const EndCriteria& endCriteria) {
@@ -90,6 +96,7 @@ namespace QuantLib {
             [this](const auto m, const auto n, const auto x, const auto fvec, [[maybe_unused]] const auto iflag) {
                 this->fcn(m, n, x, fvec);
             };
+<<<<<<< HEAD
         MINPACK::LmdifCostFunction lmdifJacFunction;
         if (useCostFunctionsJacobian_) {
             lmdifJacFunction =
@@ -123,6 +130,14 @@ namespace QuantLib {
                                              epsfcn_local, fcns);
                 };
         }
+=======
+        MINPACK::LmdifCostFunction lmdifJacFunction =
+            useCostFunctionsJacobian_
+                ? [this](const auto m, const auto n, const auto x, const auto fjac, [[maybe_unused]] const auto iflag) {
+                    this->jacFcn(m, n, x, fjac);
+                }
+                : MINPACK::LmdifCostFunction();
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
         MINPACK::lmdif(m, n, xx.begin(), fvec.get(),
                        endCriteria.functionEpsilon(),
                        xtol_,
@@ -172,12 +187,20 @@ namespace QuantLib {
         return ecType;
     }
 
+<<<<<<< HEAD
     void LevenbergMarquardt::fcnForProblem(Problem& problem,
                                            int, int n, Real* x, Real* fvec) {
         Array xt(n);
         std::copy(x, x+n, xt.begin());
         if (problem.constraint().test(xt)) {
             const Array& tmp = problem.values(xt);
+=======
+    void LevenbergMarquardt::fcn(int, int n, Real* x, Real* fvec) {
+        Array xt(n);
+        std::copy(x, x+n, xt.begin());
+        if (currentProblem_->constraint().test(xt)) {
+            const Array& tmp = currentProblem_->values(xt);
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
             bool valid = true;
             for (Real i : tmp) {
                 if (!std::isfinite(i)) {
@@ -190,6 +213,7 @@ namespace QuantLib {
                 return;
             }
         }
+<<<<<<< HEAD
         std::fill(fvec, fvec + initCostValues_.size(), 1.0e10);
     }
 
@@ -219,6 +243,17 @@ namespace QuantLib {
         std::fill(fvec, fvec + initCostValues_.size(), 1.0e10);
     }
 
+=======
+        // Constraint violated or evaluation produced non-finite values:
+        // return a large, uniform penalty so the optimizer steers away.
+        // A fixed constant is used instead of the initial cost values because
+        // the latter can be very small (even zero) when the starting point is
+        // near-optimal, which would fail to deter the optimizer from exploring
+        // infeasible regions.
+        std::fill(fvec, fvec + initCostValues_.size(), 1.0e10);
+    }
+
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
     void LevenbergMarquardt::jacFcn(int m, int n, Real* x, Real* fjac) {
         Array xt(n);
         std::copy(x, x+n, xt.begin());

@@ -48,4 +48,15 @@ set_target_properties(TimeFunctionsFuzzer PROPERTIES
     COMPILE_FLAGS "${FUZZING_COMPILE_FLAGS}"
     LINK_FLAGS "${FUZZING_LINK_FLAGS}"
 )
+<<<<<<< HEAD
 target_link_libraries(TimeFunctionsFuzzer ql_library ${QL_THREAD_LIBRARIES})
+=======
+target_link_libraries(TimeFunctionsFuzzer ql_library ${QL_THREAD_LIBRARIES})
+
+add_executable(BlackFormulaFuzzer fuzzblackformula.cpp)
+set_target_properties(BlackFormulaFuzzer PROPERTIES
+    COMPILE_FLAGS "${FUZZING_COMPILE_FLAGS}"
+    LINK_FLAGS "${FUZZING_LINK_FLAGS}"
+)
+target_link_libraries(BlackFormulaFuzzer ql_library ${QL_THREAD_LIBRARIES})
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa

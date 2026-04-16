@@ -89,6 +89,10 @@ void resetJacobianStats() {
 double jacobianSeconds() { return g_jacSeconds; }
 long long jacobianCalls() { return g_jacCalls; }
 
+<<<<<<< HEAD
+=======
+namespace QuantLib::MINPACK {
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
 #define BUG 0
 /* resolution of arithmetic */
 double MACHEP = 1.2e-16;
@@ -378,12 +382,17 @@ void fdjac2(int m,
             h = eps;
         x[j] = temp + h;
         fcn(m, n, x, wa, iflag);
+<<<<<<< HEAD
         if (*iflag < 0) {
             g_jacSeconds += std::chrono::duration<double>(
                 std::chrono::steady_clock::now() - _jac_t0).count();
             g_jacCalls += 1;
             return;
         }
+=======
+        if (*iflag < 0)
+            return;
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
         x[j] = temp;
         for (i = 0; i < m; i++) {
             fjac[ij] = (wa[i] - fvec[i]) / h;

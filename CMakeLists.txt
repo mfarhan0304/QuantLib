@@ -169,6 +169,7 @@ set(Boost_NO_WARN_NEW_VERSIONS ON)
 # Avoid using Boost auto-linking
 add_compile_definitions(BOOST_ALL_NO_LIB)
 
+<<<<<<< HEAD
 # Prefer pthread flag as per https://cmake.org/cmake/help/latest/module/FindThreads.html
 # Must be set BEFORE find_package(OpenMP) so the OpenMP target doesn't
 # record an absolute libpthread.so path (unavailable on e.g. RHEL 9).
@@ -176,10 +177,20 @@ if (NOT DEFINED THREADS_PREFER_PTHREAD_FLAG)
     set(THREADS_PREFER_PTHREAD_FLAG ON)
 endif()
 
+=======
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
 if (QL_ENABLE_OPENMP)
     find_package(OpenMP REQUIRED)
 endif()
 
+<<<<<<< HEAD
+=======
+# Prefer pthread flag as per https://cmake.org/cmake/help/latest/module/FindThreads.html
+if (NOT DEFINED THREADS_PREFER_PTHREAD_FLAG)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+endif()
+
+>>>>>>> 8aef029c02935baf52c93391eb70dcdbd9ab88aa
 # Add Threads dependency when any of the threading features are enabled
 if (QL_ENABLE_PARALLEL_UNIT_TEST_RUNNER OR QL_ENABLE_SESSIONS OR QL_ENABLE_THREAD_SAFE_OBSERVER_PATTERN)
     find_package(Threads REQUIRED)
